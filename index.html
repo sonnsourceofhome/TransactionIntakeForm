@@ -571,6 +571,13 @@
 
       console.log('TRANSACTION PAYLOAD:', JSON.stringify(payload, null, 2));
 
+      // Send to Zapier webhook
+      fetch('https://hooks.zapier.com/hooks/catch/13256633/4y0d6gj/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).catch(err => console.error('Zapier error:', err));
+
       // Show success
       document.getElementById('formContent').style.display = 'none';
       document.getElementById('successScreen').style.display = 'block';
