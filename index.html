@@ -105,44 +105,59 @@
     }
 
     /* Toggle */
-    .type-toggle {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      overflow: hidden;
+    .type-dropdown-wrap {
       margin-bottom: 24px;
-      background: var(--card);
-    }
-
-    .type-btn {
-      padding: 13px 20px;
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: var(--muted);
-      transition: all 0.3s;
       position: relative;
     }
 
-    .type-btn:first-child { border-right: 1px solid var(--border); }
-
-    .type-btn.active {
-      background: var(--accent-dim);
+    .type-dropdown-wrap::after {
+      content: '▾';
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
       color: var(--accent);
+      pointer-events: none;
+      font-size: 12px;
     }
 
-    .type-btn.active::after {
-      content: '';
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 2px;
-      background: var(--accent);
+    .type-select {
+      width: 100%;
+      padding: 14px 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      appearance: none;
+      outline: none;
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+
+    .type-select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(201,168,76,0.1);
+    }
+
+    .type-select.invalid {
+      border-color: #7a3a30;
+      box-shadow: 0 0 0 2px rgba(212,122,106,0.1);
+    }
+
+    .type-select option { background: #111111; color: var(--text); text-transform: uppercase; }
+    .type-select option:first-child { color: var(--muted); }
+
+    .type-error {
+      font-size: 11px;
+      color: #d47a6a;
+      margin-top: 6px;
+      display: none;
+      padding-left: 2px;
     }
 
     /* Card */
@@ -419,9 +434,13 @@
       <p>Complete all fields to initiate a new transaction checklist.</p>
     </div>
 
-    <div class="type-toggle">
-      <button class="type-btn active" id="btnBuyer" onclick="setType('buyer')">Buyer</button>
-      <button class="type-btn" id="btnListing" onclick="setType('listing')">Listing</button>
+    <div class="type-dropdown-wrap">
+      <select class="type-select" id="typeSelect" onchange="setType(this.value)">
+        <option value="" disabled selected>Please select one</option>
+        <option value="buyer">Buyer</option>
+        <option value="listing">Listing</option>
+      </select>
+      <span class="type-error" id="err-type">Please select Buyer or Listing to continue.</span>
     </div>
 
     <div class="card" id="mainCard">
@@ -491,17 +510,29 @@
   </div>
 
   <script>
-    let currentType = 'buyer';
+    let currentType = '';
 
     function setType(type) {
       currentType = type;
-      document.getElementById('btnBuyer').className = type === 'buyer' ? 'type-btn active' : 'type-btn';
-      document.getElementById('btnListing').className = type === 'listing' ? 'type-btn active' : 'type-btn';
+      const sel = document.getElementById('typeSelect');
+      sel.classList.remove('invalid');
+      document.getElementById('err-type').style.display = 'none';
     }
 
     function validate() {
-      const fields = ['firstName', 'lastName', 'address', 'agent', 'closingDate'];
       let valid = true;
+
+      // Validate type dropdown
+      if (!currentType) {
+        document.getElementById('typeSelect').classList.add('invalid');
+        document.getElementById('err-type').style.display = 'block';
+        valid = false;
+      } else {
+        document.getElementById('typeSelect').classList.remove('invalid');
+        document.getElementById('err-type').style.display = 'none';
+      }
+
+      const fields = ['firstName', 'lastName', 'address', 'agent', 'closingDate'];
       fields.forEach(id => {
         const el = document.getElementById(id);
         const err = document.getElementById('err-' + id);
